@@ -1,10 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Get API key from Streamlit Secrets
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-model = genai.GenerativeModel("gemini-1.5-flash-latest")
+# Use a currently supported model
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 st.set_page_config(page_title="AI Assistant")
 
@@ -20,7 +20,6 @@ for msg in st.session_state.messages:
 prompt = st.chat_input("Ask me anything...")
 
 if prompt:
-
     st.session_state.messages.append(
         {"role": "user", "content": prompt}
     )
@@ -28,16 +27,22 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        response = model.generate_content(prompt)
+    try:
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
 
-        answer = response.text
+                response = model.generate_content(prompt)
 
-        st.markdown(answer)
+                answer = response.text
 
-    st.session_state.messages.append(
-        {
-            "role": "assistant",
-            "content": answer
-        }
-    )
+                st.markdown(answer)
+
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": answer
+            }
+        )
+
+    except Exception as e:
+        st.error(str(e))
