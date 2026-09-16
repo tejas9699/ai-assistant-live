@@ -1,14 +1,17 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+client = genai.Client(
+    api_key=st.secrets["GEMINI_API_KEY"]
+)
 
-# Use a currently supported model
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-st.set_page_config(page_title="AI Assistant")
+st.set_page_config(
+    page_title="AI Assistant",
+    page_icon="🤖"
+)
 
 st.title("🤖 AI Assistant")
+st.caption("Powered by Google Gemini")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -20,6 +23,7 @@ for msg in st.session_state.messages:
 prompt = st.chat_input("Ask me anything...")
 
 if prompt:
+
     st.session_state.messages.append(
         {"role": "user", "content": prompt}
     )
@@ -27,22 +31,21 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    try:
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
 
-                response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
 
-                answer = response.text
+            answer = response.text
 
-                st.markdown(answer)
+            st.markdown(answer)
 
-        st.session_state.messages.append(
-            {
-                "role": "assistant",
-                "content": answer
-            }
-        )
-
-    except Exception as e:
-        st.error(str(e))
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": answer
+        }
+    )
